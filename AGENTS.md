@@ -206,7 +206,7 @@ deployment:
     - /bin/ln -sfn $REPO_DIR/storage/app/public $WEBROOT/storage
     
     # 2. Sinkronkan hanya isi folder public Laravel ke domain webroot
-    - /bin/rsync -av --delete --exclude='.well-known' --exclude='cgi-bin' $REPO_DIR/public/ $WEBROOT/
+    - /bin/cp -rf $REPO_DIR/public/. $WEBROOT/
     
     # 3. Jalankan optimasi Laravel
     - /usr/local/bin/php $REPO_DIR/artisan config:cache

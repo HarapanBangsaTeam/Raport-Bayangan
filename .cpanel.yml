@@ -4,7 +4,7 @@ deployment:
     - export REPO_DIR=/home/fivgoweb/repositories/Raport-Bayangan
     - export WEBROOT=/home/fivgoweb/harapanbangsa.my.id
     - /bin/ln -sfn $REPO_DIR/storage/app/public $WEBROOT/storage
-    - /bin/rsync -av --delete --exclude='.well-known' --exclude='cgi-bin' $REPO_DIR/public/ $WEBROOT/
+    - /bin/cp -rf $REPO_DIR/public/. $WEBROOT/
     - /usr/local/bin/php $REPO_DIR/artisan config:cache
     - /usr/local/bin/php $REPO_DIR/artisan route:cache
     - /usr/local/bin/php $REPO_DIR/artisan view:cache
