@@ -172,3 +172,45 @@ Only an explicit choice of antislop during or after selects a session mode. A re
 If the mode is unresolved, ask during/after and end the response; wait for the answer before any UI review, planning, or concept. For read-only tasks, put the active-mode notice only at the start of the final answer, never in progress messages. For editing tasks, announce before the first edit and omit it from the final answer.
 To update antislop later: `npx antislop-ai --update`, or run `npx antislop-ai` and pick Overwrite them.
 <!-- antislop:end -->
+
+# Deployment & Environment Architecture (cPanel Hosting)
+
+Pedoman dan batasan sistem untuk lingkungan hosting Antigravity/cPanel:
+
+## 1. Spesifikasi Teknis Proyek
+* **Framework**: Laravel 13
+* **PHP Runtime**: PHP 8.3+ / 8.4 (sesuai dependensi Laravel 13)
+* **Database Engine**: PostgreSQL 13 / MariaDB 10.13 / MySQL
+* **User/Home Directory**: `/home/fivgoweb/`
+* **Target Domain**: `harapanbangsa.my.id`
+* **Target Public Webroot**: `/home/fivgoweb/harapanbangsa.my.id/`
+* **Core Application Root**: `/home/fivgoweb/repositories/Raport-Bayangan/`
+
+## 2. Struktur Arsitektur & Keamanan Direktori
+Demi alasan keamanan, folder inti Laravel (`app/`, `config/`, `vendor/`, `.env`, dll.) **TIDAK BOLEH** ditempatkan langsung di dalam webroot publik (`harapanbangsa.my.id`).
+Pemisahan direktori yang digunakan:
+1. **Backend / Core Repo**: Tersimpan pada direktori non-publik `/home/fivgoweb/repositories/Raport-Bayangan`.
+2. **Webroot Publik**: Direktori `/home/fivgoweb/harapanbangsa.my.id/` hanya berisi aset dari folder `public/` Laravel (`index.php`, `.htaccess`, `robots.txt`, build assets, dan symlink `storage`).
+
+## 3. Konfigurasi Deployment Otomatis (`.cpanel.yml`)
+Setiap kali melakukan pembaruan skrip deployment di repository root, agen harus memastikan file `.cpanel.yml` menyalin konten folder `public` ke direktori webroot domain:
+
+```yaml
+---
+deployment:
+  tasks:
+    - export REPO_DIR=/home/fivgoweb/repositories/Raport-Bayangan
+    - export WEBROOT=/home/fivgoweb/harapanbangsa.my.id
+    
+    # 1. Update symlink storage jika belum ada
+    - /bin/ln -sfn $REPO_DIR/storage/app/public $WEBROOT/storage
+    
+    # 2. Sinkronkan hanya isi folder public Laravel ke domain webroot
+    - /bin/rsync -av --delete --exclude='.well-known' --exclude='cgi-bin' $REPO_DIR/public/ $WEBROOT/
+    
+    # 3. Jalankan optimasi Laravel
+    - /usr/local/bin/php $REPO_DIR/artisan config:cache
+    - /usr/local/bin/php $REPO_DIR/artisan route:cache
+    - /usr/local/bin/php $REPO_DIR/artisan view:cache
+```
+

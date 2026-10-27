@@ -1,0 +1,16 @@
+---
+deployment:
+  tasks:
+    - export REPO_DIR=/home/fivgoweb/repositories/Raport-Bayangan
+    - export WEBROOT=/home/fivgoweb/harapanbangsa.my.id
+
+    # 1. Update symlink storage jika belum ada
+    - /bin/ln -sfn $REPO_DIR/storage/app/public $WEBROOT/storage
+
+    # 2. Sinkronkan hanya isi folder public Laravel ke domain webroot
+    - /bin/rsync -av --delete --exclude='.well-known' --exclude='cgi-bin' $REPO_DIR/public/ $WEBROOT/
+
+    # 3. Jalankan optimasi Laravel
+    - /usr/local/bin/php $REPO_DIR/artisan config:cache
+    - /usr/local/bin/php $REPO_DIR/artisan route:cache
+    - /usr/local/bin/php $REPO_DIR/artisan view:cache
