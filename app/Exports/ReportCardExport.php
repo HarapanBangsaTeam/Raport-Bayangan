@@ -227,10 +227,10 @@ class ReportCardExport implements Export, WithEvents, WithTitle
         foreach ($grades as $index => $grade) {
             $sheet->setCellValue("A{$row}", $index + 1);
             $sheet->setCellValue("B{$row}", $grade->subject->name ?? '');
-            $sheet->setCellValue("C{$row}", $grade->pr !== null ? (float)$grade->pr : '-');
-            $sheet->setCellValue("D{$row}", $grade->uh !== null ? (float)$grade->uh : '-');
-            $sheet->setCellValue("E{$row}", $grade->tertulis !== null ? (float)$grade->tertulis : '-');
-            $sheet->setCellValue("F{$row}", $grade->praktek !== null ? (float)$grade->praktek : '-');
+            $sheet->setCellValue("C{$row}", $grade->pr !== null ? (float) $grade->pr : '-');
+            $sheet->setCellValue("D{$row}", $grade->uh !== null ? (float) $grade->uh : '-');
+            $sheet->setCellValue("E{$row}", $grade->tertulis !== null ? (float) $grade->tertulis : '-');
+            $sheet->setCellValue("F{$row}", $grade->praktek !== null ? (float) $grade->praktek : '-');
             $sheet->getRowDimension($row)->setRowHeight(22);
             $row++;
         }

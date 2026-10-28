@@ -1,8 +1,40 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Input Nilai: ') }} {{ $student->name }} ({{ $student->classroom->name }})
-        </h2>
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <div>
+                <h2 class="font-bold text-xl sm:text-2xl text-gray-800 leading-tight">
+                    {{ __('Input Nilai: ') }} {{ $student->name }}
+                </h2>
+                <p class="text-xs text-gray-500 mt-0.5">
+                    Kelas {{ $student->classroom->name ?? '-' }} | NISN: {{ $student->nisn ?? '-' }} | NIS: {{ $student->nis ?? '-' }}
+                </p>
+            </div>
+            <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+                @if($prevStudent)
+                    <a href="{{ route('grades.edit', $prevStudent->id) }}" class="inline-flex items-center gap-1 px-3 py-1.5 bg-white hover:bg-gray-100 text-gray-700 text-xs font-bold rounded-lg border border-gray-300 shadow-2xs transition-all" title="Pindah ke {{ $prevStudent->name }}">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                        <span>Siswa Sebelumnya</span>
+                    </a>
+                @else
+                    <span class="inline-flex items-center gap-1 px-3 py-1.5 bg-gray-100 text-gray-400 text-xs font-semibold rounded-lg border border-gray-200 cursor-not-allowed">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                        <span>Siswa Sebelumnya</span>
+                    </span>
+                @endif
+
+                @if($nextStudent)
+                    <a href="{{ route('grades.edit', $nextStudent->id) }}" class="inline-flex items-center gap-1 px-3 py-1.5 bg-white hover:bg-gray-100 text-gray-700 text-xs font-bold rounded-lg border border-gray-300 shadow-2xs transition-all" title="Pindah ke {{ $nextStudent->name }}">
+                        <span>Siswa Berikutnya</span>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </a>
+                @else
+                    <span class="inline-flex items-center gap-1 px-3 py-1.5 bg-gray-100 text-gray-400 text-xs font-semibold rounded-lg border border-gray-200 cursor-not-allowed">
+                        <span>Siswa Berikutnya</span>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </span>
+                @endif
+            </div>
+        </div>
     </x-slot>
 
     <div class="py-12">
@@ -88,27 +120,68 @@
                             </div>
                         </div>
                         
-                        <div>
-                            <h3 class="font-bold text-lg mb-2">Catatan Raport</h3>
-                            <div class="mb-4">
-                                <label class="block text-sm font-medium text-gray-700">Catatan Wali Kelas</label>
-                                <textarea name="attendance[note]" rows="5" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">{{ old('attendance.note', $attendance->note ?? 'Tetap semangat belajar ya nak!') }}</textarea>
+                        <div x-data="{
+                            note: @js(old('attendance.note', $attendance->note ?? 'Tetap semangat belajar ya nak!')),
+                            setNote(text) {
+                                this.note = text;
+                            }
+                        }">
+                            <h3 class="font-bold text-lg mb-2 text-gray-800">Catatan Raport</h3>
+                            <div class="mb-3">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Catatan Wali Kelas</label>
+                                <textarea name="attendance[note]" x-model="note" rows="4" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm"></textarea>
+                            </div>
+
+                            <div>
+                                <span class="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-1.5">Pilihan Cepat Template Catatan:</span>
+                                <div class="flex flex-wrap gap-1.5">
+                                    <button type="button" @click="setNote('Prestasi sangat baik, pertahankan semangat belajarmu!')" class="text-xs px-2.5 py-1 bg-slate-100 hover:bg-blue-100 text-slate-700 hover:text-blue-800 rounded-md border border-slate-200 transition-colors text-left">
+                                        Prestasi sangat baik
+                                    </button>
+                                    <button type="button" @click="setNote('Tingkatkan ketekunan dalam mengerjakan tugas harian dan PR.')" class="text-xs px-2.5 py-1 bg-slate-100 hover:bg-blue-100 text-slate-700 hover:text-blue-800 rounded-md border border-slate-200 transition-colors text-left">
+                                        Tingkatkan ketekunan PR
+                                    </button>
+                                    <button type="button" @click="setNote('Lebih aktif dan fokus selama pembelajaran di kelas.')" class="text-xs px-2.5 py-1 bg-slate-100 hover:bg-blue-100 text-slate-700 hover:text-blue-800 rounded-md border border-slate-200 transition-colors text-left">
+                                        Lebih aktif & fokus
+                                    </button>
+                                    <button type="button" @click="setNote('Tingkatkan kehadiran dan kedisiplinan belajar di sekolah.')" class="text-xs px-2.5 py-1 bg-slate-100 hover:bg-blue-100 text-slate-700 hover:text-blue-800 rounded-md border border-slate-200 transition-colors text-left">
+                                        Disiplin kehadiran
+                                    </button>
+                                    <button type="button" @click="setNote('Tetap semangat belajar ya nak!')" class="text-xs px-2.5 py-1 bg-slate-100 hover:bg-blue-100 text-slate-700 hover:text-blue-800 rounded-md border border-slate-200 transition-colors text-left">
+                                        Default penyemangat
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-gray-200 pt-6">
-                        <a href="{{ route('grades.index') }}" class="w-full sm:w-auto text-center px-5 py-2.5 bg-slate-700 hover:bg-slate-800 text-white font-bold rounded-lg shadow-sm text-sm transition-all">
-                            Kembali ke Daftar Nilai
-                        </a>
-                        <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
-                            <button type="reset" class="px-5 py-2.5 bg-gray-600 hover:bg-gray-700 text-white font-bold rounded-lg shadow-sm text-sm transition-all">
+                        <div class="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+                            <a href="{{ route('grades.index') }}" class="w-full sm:w-auto text-center px-4 py-2.5 bg-slate-700 hover:bg-slate-800 text-white font-bold rounded-lg shadow-sm text-xs transition-all">
+                                Kembali ke Daftar Nilai
+                            </a>
+                            <button type="button" 
+                                    x-data="" 
+                                    x-on:click.prevent="$dispatch('open-modal', 'confirm-delete-student-grades')" 
+                                    class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-300 font-bold rounded-lg text-xs shadow-xs transition-all">
+                                <svg class="w-4 h-4 text-rose-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                                <span>Kosongkan Nilai Siswa Ini</span>
+                            </button>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-end">
+                            <button type="reset" class="px-4 py-2.5 bg-gray-500 hover:bg-gray-600 text-white font-bold rounded-lg shadow-sm text-xs transition-all">
                                 Reset
                             </button>
-                            <button type="submit" name="action" value="save" class="px-5 py-2.5 bg-blue-700 hover:bg-blue-800 text-white font-bold rounded-lg shadow-md text-sm transition-all">
+                            <button type="submit" name="action" value="save" class="px-4 py-2.5 bg-blue-700 hover:bg-blue-800 text-white font-bold rounded-lg shadow-md text-xs transition-all">
                                 Simpan Nilai
                             </button>
-                            <button type="submit" name="action" value="preview" class="px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-lg shadow-md text-sm transition-all">
+                            <button type="submit" name="action" value="save_and_next" class="inline-flex items-center gap-1.5 px-4 py-2.5 bg-indigo-700 hover:bg-indigo-800 text-white font-bold rounded-lg shadow-md text-xs transition-all" title="Simpan nilai siswa ini dan langsung buka siswa berikutnya">
+                                <span>Simpan & Lanjut</span>
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
+                            </button>
+                            <button type="submit" name="action" value="preview" class="px-4 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-lg shadow-md text-xs transition-all">
                                 Simpan & Lihat Raport
                             </button>
                         </div>
@@ -118,4 +191,51 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal Konfirmasi Kosongkan Nilai Siswa Ini -->
+    <x-modal name="confirm-delete-student-grades" focusable>
+        <form method="POST" action="{{ route('grades.destroy-student', $student->id) }}" class="p-6">
+            @csrf
+            @method('DELETE')
+
+            <div class="flex items-start gap-4">
+                <div class="flex-shrink-0 w-11 h-11 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                </div>
+                <div class="flex-1">
+                    <h2 class="text-lg font-bold text-gray-900 leading-snug">
+                        Kosongkan Nilai {{ $student->name }}
+                    </h2>
+                    <p class="mt-2 text-xs sm:text-sm text-gray-600 leading-relaxed">
+                        Apakah Anda yakin ingin mengosongkan seluruh nilai mata pelajaran untuk siswa <span class="font-bold text-gray-800">{{ $student->name }}</span>?
+                    </p>
+                </div>
+            </div>
+
+            <div class="mt-4 pt-3 border-t border-gray-100">
+                <label class="flex items-center gap-3 cursor-pointer select-none bg-slate-50 border border-gray-200 p-3 rounded-lg hover:bg-slate-100 transition-colors">
+                    <input type="checkbox" name="reset_attendance" value="1" checked class="w-4 h-4 rounded text-blue-700 border-gray-300 focus:ring-blue-500">
+                    <span class="text-xs sm:text-sm text-gray-700 font-medium">
+                        Reset juga data absensi (Sakit, Izin, Alpa) dan catatan raport siswa ini
+                    </span>
+                </label>
+            </div>
+
+            <div class="mt-6 flex justify-end gap-3 pt-3 border-t border-gray-100">
+                <x-secondary-button x-on:click="$dispatch('close')">
+                    Batal
+                </x-secondary-button>
+
+                <button
+                    type="submit"
+                    class="inline-flex items-center px-4 py-2 bg-rose-700 hover:bg-rose-800 text-white rounded-lg text-xs font-bold shadow-xs transition-all focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2"
+                >
+                    Ya, Kosongkan Nilai Siswa Ini
+                </button>
+            </div>
+        </form>
+    </x-modal>
 </x-app-layout>
+

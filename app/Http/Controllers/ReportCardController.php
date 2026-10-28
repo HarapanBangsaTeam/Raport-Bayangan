@@ -7,8 +7,13 @@ use App\Models\SchoolSetting;
 use App\Models\Student;
 use App\Models\Subject;
 use Illuminate\Http\Request;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class ReportCardController extends Controller
@@ -227,6 +232,161 @@ class ReportCardController extends Controller
         $cleanName = preg_replace('/[^A-Za-z0-9_\- ]/', '', $student->name);
         $nis = $student->nis ?? '000';
         $filename = "Raport Bayangan - {$cleanName} ({$nis}).xlsx";
+
+        return response()->streamDownload(function () use ($spreadsheet) {
+            $writer = new Xlsx($spreadsheet);
+            $writer->save('php://output');
+        }, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ]);
+    }
+
+    /**
+     * Export rekapitulasi leger nilai seluruh siswa dalam 1 file Excel.
+     */
+    public function exportLeger()
+    {
+        $school = SchoolSetting::first();
+        $academicYear = AcademicYear::where('is_active', true)->first();
+        $subjects = Subject::where('is_active', true)->orderBy('order_number')->orderBy('id')->get();
+        $students = Student::with(['classroom', 'grades', 'attendance'])->orderBy('name')->get();
+
+        $spreadsheet = new Spreadsheet;
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('LEGER NILAI');
+
+        // Header info
+        $sheet->setCellValue('A1', $school->nama_sekolah ?? 'SMP HARAPAN BANGSA KARAWANG');
+        $sheet->setCellValue('A2', 'REKAPITULASI LEGER NILAI BELAJAR SISWA (RAPORT BAYANGAN)');
+        $sheet->setCellValue('A3', 'Tahun Pelajaran: '.($academicYear->name ?? '2026/2027').' - Semester '.($academicYear->semester ?? 1));
+
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
+        $sheet->getStyle('A2')->getFont()->setBold(true)->setSize(12);
+        $sheet->getStyle('A3')->getFont()->setSize(10);
+
+        // Columns definition
+        $colIdx = 1;
+        $sheet->setCellValue([$colIdx++, 5], 'No');
+        $sheet->setCellValue([$colIdx++, 5], 'NISN');
+        $sheet->setCellValue([$colIdx++, 5], 'NIS');
+        $sheet->setCellValue([$colIdx++, 5], 'Nama Siswa');
+        $sheet->setCellValue([$colIdx++, 5], 'Kelas');
+
+        foreach ($subjects as $subject) {
+            $sheet->setCellValue([$colIdx++, 5], $subject->name);
+        }
+
+        $colTotal = $colIdx++;
+        $colRata = $colIdx++;
+        $colSakit = $colIdx++;
+        $colIzin = $colIdx++;
+        $colAlpa = $colIdx++;
+        $colCatatan = $colIdx++;
+
+        $sheet->setCellValue([$colTotal, 5], 'Total');
+        $sheet->setCellValue([$colRata, 5], 'Rata-rata');
+        $sheet->setCellValue([$colSakit, 5], 'Sakit');
+        $sheet->setCellValue([$colIzin, 5], 'Izin');
+        $sheet->setCellValue([$colAlpa, 5], 'Alpa');
+        $sheet->setCellValue([$colCatatan, 5], 'Catatan Wali Kelas');
+
+        $lastColLetter = Coordinate::stringFromColumnIndex($colCatatan - 1);
+
+        // Merge and center title rows across table width
+        $sheet->mergeCells("A1:{$lastColLetter}1");
+        $sheet->mergeCells("A2:{$lastColLetter}2");
+        $sheet->mergeCells("A3:{$lastColLetter}3");
+        $sheet->getStyle("A1:{$lastColLetter}3")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+        // Style header row
+        $headerRange = "A5:{$lastColLetter}5";
+        $sheet->getStyle($headerRange)->applyFromArray([
+            'font' => ['bold' => true, 'size' => 10],
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
+                'vertical' => Alignment::VERTICAL_CENTER,
+                'wrapText' => true,
+            ],
+            'fill' => [
+                'fillType' => Fill::FILL_SOLID,
+                'startColor' => ['rgb' => 'E2E8F0'],
+            ],
+            'borders' => [
+                'allBorders' => ['borderStyle' => Border::BORDER_THIN],
+            ],
+        ]);
+        $sheet->getRowDimension(5)->setRowHeight(28);
+
+        // Fill data rows
+        $row = 6;
+        foreach ($students as $index => $student) {
+            $col = 1;
+            $sheet->setCellValue([$col++, $row], $index + 1);
+            $sheet->setCellValueExplicit([$col++, $row], (string) ($student->nisn ?? '-'), DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit([$col++, $row], (string) ($student->nis ?? '-'), DataType::TYPE_STRING);
+            $sheet->setCellValue([$col++, $row], $student->name);
+            $sheet->setCellValue([$col++, $row], $student->classroom->name ?? '-');
+
+            $gradesBySubject = $student->grades->keyBy('subject_id');
+            $studentTotal = 0;
+            $subjectCountScored = 0;
+
+            foreach ($subjects as $subject) {
+                $g = $gradesBySubject->get($subject->id);
+                $scores = [];
+                if ($g) {
+                    if ($g->pr !== null && is_numeric($g->pr)) {
+                        $scores[] = (float) $g->pr;
+                    }
+                    if ($g->uh !== null && is_numeric($g->uh)) {
+                        $scores[] = (float) $g->uh;
+                    }
+                    if ($g->tertulis !== null && is_numeric($g->tertulis)) {
+                        $scores[] = (float) $g->tertulis;
+                    }
+                    if ($g->praktek !== null && is_numeric($g->praktek)) {
+                        $scores[] = (float) $g->praktek;
+                    }
+                }
+
+                if (count($scores) > 0) {
+                    $avg = (int) round(array_sum($scores) / count($scores));
+                    $sheet->setCellValue([$col++, $row], $avg);
+                    $studentTotal += $avg;
+                    $subjectCountScored++;
+                } else {
+                    $sheet->setCellValue([$col++, $row], '-');
+                }
+            }
+
+            $overallAvg = $subjectCountScored > 0 ? round($studentTotal / $subjectCountScored, 1) : '-';
+
+            $sheet->setCellValue([$colTotal, $row], $studentTotal > 0 ? $studentTotal : '-');
+            $sheet->setCellValue([$colRata, $row], $overallAvg);
+            $sheet->setCellValue([$colSakit, $row], $student->attendance->sakit ?? 0);
+            $sheet->setCellValue([$colIzin, $row], $student->attendance->izin ?? 0);
+            $sheet->setCellValue([$colAlpa, $row], $student->attendance->alpa ?? 0);
+            $sheet->setCellValue([$colCatatan, $row], $student->attendance->note ?? '-');
+
+            $sheet->getRowDimension($row)->setRowHeight(20);
+            $row++;
+        }
+
+        $lastRow = max(6, $row - 1);
+        $dataRange = "A6:{$lastColLetter}{$lastRow}";
+        $sheet->getStyle($dataRange)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $sheet->getStyle("A6:C{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('E6:'.Coordinate::stringFromColumnIndex($colAlpa)."{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+        // Auto size columns
+        for ($c = 1; $c < $colCatatan; $c++) {
+            $colLetter = Coordinate::stringFromColumnIndex($c);
+            $sheet->getColumnDimension($colLetter)->setAutoSize(true);
+        }
+        $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($colCatatan - 1))->setWidth(35);
+
+        $cleanYear = preg_replace('/[^A-Za-z0-9_\-]/', '_', $academicYear->name ?? '2026_2027');
+        $filename = "Leger_Nilai_Kelas_{$cleanYear}_Semester_".($academicYear->semester ?? 1).'.xlsx';
 
         return response()->streamDownload(function () use ($spreadsheet) {
             $writer = new Xlsx($spreadsheet);

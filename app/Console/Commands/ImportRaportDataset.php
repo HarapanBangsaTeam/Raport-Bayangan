@@ -11,11 +11,13 @@ use App\Models\StudentGrade;
 use App\Models\Subject;
 use App\Models\User;
 use Illuminate\Console\Command;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class ImportRaportDataset extends Command
 {
     protected $signature = 'raport:import-dataset';
+
     protected $description = 'Import students, subjects, and grades from the SMP Harapan Bangsa dataset Excel files';
 
     public function handle(): int
@@ -59,15 +61,15 @@ class ImportRaportDataset extends Command
 
         // 4. Subjects (17 official subjects in the exact order of the report layout)
         $subjectsList = [
-            1  => ['name' => 'Pendidikan Agama Kristen & Budi Pekerti', 'file' => 'RB PAK.xlsx', 'sheet' => 'KLS 7', 'pr' => 'D', 'uh' => 'E', 'trt' => 'F', 'prk' => 'G'],
-            2  => ['name' => 'Pendidikan Pancasila', 'file' => 'RB PP DAN SM.xlsx', 'sheet' => 'RB PP', 'pr' => 'D', 'uh' => 'E', 'trt' => 'F', 'prk' => 'G'],
-            3  => ['name' => 'Bahasa Indonesia', 'file' => 'RB BAHASA INDONESIA, SENI TEATER, SENI RUPA.xlsx', 'sheet' => 'BAHASA INDONESIA', 'pr' => 'D', 'uh' => 'E', 'trt' => 'F', 'prk' => 'G'],
-            4  => ['name' => 'Matematika', 'file' => 'RB IPA DAN MTK.xlsx', 'sheet' => 'RB MTK', 'pr' => 'D', 'uh' => 'E', 'trt' => 'F', 'prk' => 'G'],
-            5  => ['name' => 'Ilmu Pengetahuan Alam (IPA)', 'file' => 'RB IPA DAN MTK.xlsx', 'sheet' => 'RB IPA', 'pr' => 'D', 'uh' => 'E', 'trt' => 'F', 'prk' => 'G'],
-            6  => ['name' => 'Ilmu Pengetahuan Sosial (IPS)', 'file' => 'RB TIK DAN IPS.xlsx', 'sheet' => 'IPS', 'pr' => 'D', 'uh' => 'E', 'trt' => 'F', 'prk' => 'G'],
-            7  => ['name' => 'Bahasa Inggris', 'file' => 'RB ENGLISH, PRAKARYA, SENI TARI, ENGLISH CONVERSATION.xlsx', 'sheet' => 'SMP.Y7 ENGLISH', 'pr' => 'D', 'uh' => 'E', 'trt' => 'G', 'prk' => 'F'],
-            8  => ['name' => 'PJOK', 'file' => 'RB PJOK DAN SUNDA.xlsx', 'sheet' => 'PJOK', 'pr' => 'D', 'uh' => 'E', 'trt' => 'F', 'prk' => 'G'],
-            9  => ['name' => 'Seni Tari', 'file' => 'RB ENGLISH, PRAKARYA, SENI TARI, ENGLISH CONVERSATION.xlsx', 'sheet' => 'SMP.TARI', 'pr' => 'D', 'uh' => 'E', 'trt' => 'G', 'prk' => 'F'],
+            1 => ['name' => 'Pendidikan Agama Kristen & Budi Pekerti', 'file' => 'RB PAK.xlsx', 'sheet' => 'KLS 7', 'pr' => 'D', 'uh' => 'E', 'trt' => 'F', 'prk' => 'G'],
+            2 => ['name' => 'Pendidikan Pancasila', 'file' => 'RB PP DAN SM.xlsx', 'sheet' => 'RB PP', 'pr' => 'D', 'uh' => 'E', 'trt' => 'F', 'prk' => 'G'],
+            3 => ['name' => 'Bahasa Indonesia', 'file' => 'RB BAHASA INDONESIA, SENI TEATER, SENI RUPA.xlsx', 'sheet' => 'BAHASA INDONESIA', 'pr' => 'D', 'uh' => 'E', 'trt' => 'F', 'prk' => 'G'],
+            4 => ['name' => 'Matematika', 'file' => 'RB IPA DAN MTK.xlsx', 'sheet' => 'RB MTK', 'pr' => 'D', 'uh' => 'E', 'trt' => 'F', 'prk' => 'G'],
+            5 => ['name' => 'Ilmu Pengetahuan Alam (IPA)', 'file' => 'RB IPA DAN MTK.xlsx', 'sheet' => 'RB IPA', 'pr' => 'D', 'uh' => 'E', 'trt' => 'F', 'prk' => 'G'],
+            6 => ['name' => 'Ilmu Pengetahuan Sosial (IPS)', 'file' => 'RB TIK DAN IPS.xlsx', 'sheet' => 'IPS', 'pr' => 'D', 'uh' => 'E', 'trt' => 'F', 'prk' => 'G'],
+            7 => ['name' => 'Bahasa Inggris', 'file' => 'RB ENGLISH, PRAKARYA, SENI TARI, ENGLISH CONVERSATION.xlsx', 'sheet' => 'SMP.Y7 ENGLISH', 'pr' => 'D', 'uh' => 'E', 'trt' => 'G', 'prk' => 'F'],
+            8 => ['name' => 'PJOK', 'file' => 'RB PJOK DAN SUNDA.xlsx', 'sheet' => 'PJOK', 'pr' => 'D', 'uh' => 'E', 'trt' => 'F', 'prk' => 'G'],
+            9 => ['name' => 'Seni Tari', 'file' => 'RB ENGLISH, PRAKARYA, SENI TARI, ENGLISH CONVERSATION.xlsx', 'sheet' => 'SMP.TARI', 'pr' => 'D', 'uh' => 'E', 'trt' => 'G', 'prk' => 'F'],
             10 => ['name' => 'Seni Musik', 'file' => 'RB PP DAN SM.xlsx', 'sheet' => 'RB SM', 'pr' => 'D', 'uh' => 'E', 'trt' => 'F', 'prk' => 'G'],
             11 => ['name' => 'Seni Teater', 'file' => 'RB BAHASA INDONESIA, SENI TEATER, SENI RUPA.xlsx', 'sheet' => 'SENI TEATER', 'pr' => 'D', 'uh' => 'E', 'trt' => 'F', 'prk' => 'G'],
             12 => ['name' => 'Seni Rupa', 'file' => 'RB BAHASA INDONESIA, SENI TEATER, SENI RUPA.xlsx', 'sheet' => 'SENI RUPA', 'pr' => 'D', 'uh' => 'E', 'trt' => 'F', 'prk' => 'G'],
@@ -97,14 +99,15 @@ class ImportRaportDataset extends Command
 
         // 5. Load Students from Dataset Excel
         $datasetDir = base_path('../Raport bayangan/Dataset Nilai Siswa');
-        if (!is_dir($datasetDir)) {
+        if (! is_dir($datasetDir)) {
             // fallback if path differs
             $datasetDir = 'C:\laragon\www\SMPHB\Raport bayangan\Dataset Nilai Siswa';
         }
 
-        $studentExcelPath = $datasetDir . DIRECTORY_SEPARATOR . 'Nama siswa SMP TP 2026-2027.xlsx';
-        if (!file_exists($studentExcelPath)) {
+        $studentExcelPath = $datasetDir.DIRECTORY_SEPARATOR.'Nama siswa SMP TP 2026-2027.xlsx';
+        if (! file_exists($studentExcelPath)) {
             $this->error("Student Excel file not found at: {$studentExcelPath}");
+
             return 1;
         }
 
@@ -162,14 +165,14 @@ class ImportRaportDataset extends Command
             ];
         }
 
-        $this->info("Imported/Updated " . count($students) . " students.");
+        $this->info('Imported/Updated '.count($students).' students.');
 
         // 6. Load Dataset Grade Workbooks
         $gradeWorkbooks = [];
         foreach ($subjectsList as $subMeta) {
             $fname = $subMeta['file'];
-            if (!isset($gradeWorkbooks[$fname])) {
-                $fpath = $datasetDir . DIRECTORY_SEPARATOR . $fname;
+            if (! isset($gradeWorkbooks[$fname])) {
+                $fpath = $datasetDir.DIRECTORY_SEPARATOR.$fname;
                 if (file_exists($fpath)) {
                     $gradeWorkbooks[$fname] = IOFactory::load($fpath);
                 } else {
@@ -179,7 +182,9 @@ class ImportRaportDataset extends Command
         }
 
         $cleanVal = function ($v) {
-            if ($v === null) return null;
+            if ($v === null) {
+                return null;
+            }
             $s = trim((string) $v);
             if ($s === '' || $s === '-' || $s === 'ꟷ' || strtolower($s) === 'none') {
                 return null;
@@ -187,6 +192,7 @@ class ImportRaportDataset extends Command
             if (is_numeric($s)) {
                 return round((float) $s, 2);
             }
+
             return null;
         };
 
@@ -202,13 +208,13 @@ class ImportRaportDataset extends Command
                 $sname = $subMeta['sheet'];
                 $subjectModel = $subjectModels[$order];
 
-                if (!isset($gradeWorkbooks[$fname])) {
+                if (! isset($gradeWorkbooks[$fname])) {
                     continue;
                 }
 
                 $wb = $gradeWorkbooks[$fname];
                 $ws = $wb->getSheetByName($sname);
-                if (!$ws) {
+                if (! $ws) {
                     continue;
                 }
 
@@ -217,8 +223,8 @@ class ImportRaportDataset extends Command
                 for ($row = 5; $row <= 40; $row++) {
                     $rowText = '';
                     for ($c = 1; $c <= 10; $c++) {
-                        $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($c);
-                        $rowText .= ' ' . (string) $ws->getCell("{$colLetter}{$row}")->getValue();
+                        $colLetter = Coordinate::stringFromColumnIndex($c);
+                        $rowText .= ' '.(string) $ws->getCell("{$colLetter}{$row}")->getValue();
                     }
 
                     if (($nis !== '' && str_contains($rowText, $nis)) || stripos($rowText, $nama) !== false) {
@@ -250,6 +256,7 @@ class ImportRaportDataset extends Command
         }
 
         $this->info("Import completed successfully! Total grades recorded: {$totalGradesSaved}");
+
         return 0;
     }
 }

@@ -27,11 +27,16 @@ Route::middleware('auth')->group(function () {
 
     // Grades
     Route::get('/grades', [StudentGradeController::class, 'index'])->name('grades.index');
+    Route::get('/grades/by-subject', [StudentGradeController::class, 'bySubject'])->name('grades.by-subject');
+    Route::post('/grades/by-subject', [StudentGradeController::class, 'storeBySubject'])->name('grades.store-by-subject');
+    Route::delete('/grades/destroy-all', [StudentGradeController::class, 'destroyAll'])->name('grades.destroy-all');
+    Route::delete('/grades/{student}', [StudentGradeController::class, 'destroyStudentGrades'])->name('grades.destroy-student');
     Route::get('/grades/{student}', [StudentGradeController::class, 'edit'])->name('grades.edit');
     Route::post('/grades/{student}', [StudentGradeController::class, 'store'])->name('grades.store');
 
     // Reports
     Route::get('/reports', [ReportCardController::class, 'index'])->name('reports.index');
+    Route::get('/reports/export-leger', [ReportCardController::class, 'exportLeger'])->name('reports.export-leger');
     Route::get('/reports/print-all', [ReportCardController::class, 'printAll'])->name('reports.print-all');
     Route::get('/reports/{student}/preview', [ReportCardController::class, 'preview'])->name('reports.preview');
     Route::get('/reports/{student}/excel', [ReportCardController::class, 'excel'])->name('reports.excel');
