@@ -7,9 +7,13 @@
                 </h2>
                 <p class="text-sm text-gray-500 mt-1">SMP Harapan Bangsa Karawang</p>
             </div>
-            <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-100 text-blue-900 border border-blue-300">
-                T.A. {{ $activeYear->name ?? '2026/2027' }} - Semester {{ $activeYear->semester ?? 1 }}
-            </span>
+            <div class="flex items-center gap-2">
+                <a href="{{ route('academic-years.index') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 shadow-sm transition-all" title="Klik untuk mengelola atau mengganti semester aktif">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>T.A. {{ $activeYear->name ?? '2026/2027' }} - Semester {{ $activeYear->semester ?? 1 }} ({{ ($activeYear?->semester == 2) ? 'Genap' : 'Ganjil' }})</span>
+                    <svg class="w-3.5 h-3.5 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </a>
+            </div>
         </div>
     </x-slot>
 
@@ -42,14 +46,23 @@
                 </div>
 
                 <!-- Card 3 -->
-                <div class="bg-white overflow-hidden shadow-sm rounded-xl border border-gray-200 p-6 flex items-center justify-between">
-                    <div>
-                        <div class="text-gray-500 text-xs font-bold uppercase tracking-wider">Tahun Pelajaran</div>
-                        <div class="text-2xl font-extrabold text-indigo-800 mt-1">{{ $activeYear->name ?? '2026/2027' }}</div>
-                        <div class="text-xs text-gray-500 mt-1">Semester {{ $activeYear->semester ?? 1 }} (Ganjil)</div>
+                <div class="bg-white overflow-hidden shadow-sm rounded-xl border border-gray-200 p-6 flex flex-col justify-between">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-gray-500 text-xs font-bold uppercase tracking-wider">Tahun Pelajaran</div>
+                            <div class="text-2xl font-extrabold text-indigo-800 mt-1">{{ $activeYear->name ?? '2026/2027' }}</div>
+                            <div class="text-xs text-gray-500 mt-0.5">Semester {{ $activeYear->semester ?? 1 }} ({{ ($activeYear?->semester == 2) ? 'Genap' : 'Ganjil' }})</div>
+                        </div>
+                        <div class="p-3 bg-indigo-50 text-indigo-700 rounded-xl">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        </div>
                     </div>
-                    <div class="p-3 bg-indigo-50 text-indigo-700 rounded-xl">
-                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    <div class="mt-4 pt-3 border-t border-gray-100 flex items-center justify-between">
+                        <span class="text-[11px] text-gray-500">Status: <strong class="text-emerald-700 font-bold">Sedang Aktif</strong></span>
+                        <a href="{{ route('academic-years.index') }}" class="inline-flex items-center gap-1 text-xs font-bold text-indigo-700 hover:text-indigo-900 transition">
+                            <span>Ganti / Kelola Semester</span>
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        </a>
                     </div>
                 </div>
             </div>

@@ -12,7 +12,7 @@ class UpdateAcademicYearRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -23,7 +23,9 @@ class UpdateAcademicYearRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'name' => ['required', 'string', 'max:50'],
+            'semester' => ['required', 'integer', 'in:1,2'],
+            'is_active' => ['nullable', 'boolean'],
         ];
     }
 }

@@ -44,6 +44,7 @@ Route::middleware('auth')->group(function () {
     // Settings
     Route::get('/settings/school', [SchoolSettingController::class, 'edit'])->name('settings.school');
     Route::put('/settings/school', [SchoolSettingController::class, 'update'])->name('settings.school.update');
+    Route::post('/academic-years/{academicYear}/set-active', [AcademicYearController::class, 'setActive'])->name('academic-years.set-active');
     Route::resource('academic-years', AcademicYearController::class);
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

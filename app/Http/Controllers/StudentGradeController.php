@@ -85,10 +85,13 @@ class StudentGradeController extends Controller
             ->with('success', 'Nilai seluruh siswa untuk mata pelajaran '.($subject->name ?? '').' berhasil disimpan.');
     }
 
-    public function edit(Student $student)
+    public function edit(Request $request, Student $student)
     {
         $subjects = Subject::where('is_active', true)->orderBy('order_number')->orderBy('id')->get();
-        $academicYear = $student->academicYear ?? AcademicYear::where('is_active', true)->first();
+        $academicYearId = $request->query('academic_year_id');
+        $academicYear = $academicYearId
+            ? AcademicYear::find($academicYearId)
+            : (AcademicYear::where('is_active', true)->first() ?? $student->academicYear);
 
         $grades = StudentGrade::where('student_id', $student->id)
             ->where('academic_year_id', $academicYear->id)
@@ -108,7 +111,10 @@ class StudentGradeController extends Controller
 
     public function store(Request $request, Student $student)
     {
-        $academicYear = $student->academicYear ?? AcademicYear::where('is_active', true)->first();
+        $academicYearId = $request->input('academic_year_id') ?? $request->query('academic_year_id');
+        $academicYear = $academicYearId
+            ? AcademicYear::find($academicYearId)
+            : (AcademicYear::where('is_active', true)->first() ?? $student->academicYear);
 
         // Validasi
         $request->validate([
@@ -210,7 +216,10 @@ class StudentGradeController extends Controller
      */
     public function destroyStudentGrades(Request $request, Student $student): RedirectResponse
     {
-        $academicYear = $student->academicYear ?? AcademicYear::where('is_active', true)->first();
+        $academicYearId = $request->input('academic_year_id') ?? $request->query('academic_year_id');
+        $academicYear = $academicYearId
+            ? AcademicYear::find($academicYearId)
+            : (AcademicYear::where('is_active', true)->first() ?? $student->academicYear);
 
         $gradeQuery = StudentGrade::where('student_id', $student->id);
         if ($academicYear) {

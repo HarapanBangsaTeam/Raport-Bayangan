@@ -31,6 +31,9 @@
                     <x-nav-link :href="route('reports.index')" :active="request()->routeIs('reports.*')">
                         Raport
                     </x-nav-link>
+                    <x-nav-link :href="route('academic-years.index')" :active="request()->routeIs('academic-years.*')">
+                        Tahun & Semester
+                    </x-nav-link>
                     <x-nav-link :href="route('settings.school')" :active="request()->routeIs('settings.*')">
                         Kop Surat
                     </x-nav-link>
@@ -100,6 +103,9 @@
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('reports.index')" :active="request()->routeIs('reports.*')">
                 {{ __('Raport') }}
+            </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('academic-years.index')" :active="request()->routeIs('academic-years.*')">
+                {{ __('Tahun & Semester') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('settings.school')" :active="request()->routeIs('settings.*')">
                 {{ __('Kop Surat') }}

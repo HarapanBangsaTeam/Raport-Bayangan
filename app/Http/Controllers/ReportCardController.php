@@ -20,14 +20,30 @@ class ReportCardController extends Controller
 {
     public function index(Request $request)
     {
+        $academicYears = AcademicYear::orderBy('name', 'desc')->orderBy('semester', 'desc')->get();
+        $activeAcademicYear = AcademicYear::where('is_active', true)->first();
+        $selectedAcademicYearId = $request->query('academic_year_id', $activeAcademicYear?->id);
+        $selectedAcademicYear = $academicYears->firstWhere('id', $selectedAcademicYearId) ?? $activeAcademicYear;
+
         $students = Student::with(['classroom', 'academicYear'])->paginate(20);
 
-        return view('reports.index', compact('students'));
+        return view('reports.index', compact('students', 'academicYears', 'selectedAcademicYear'));
     }
 
-    public function preview(Student $student)
+    public function preview(Request $request, Student $student)
     {
-        $student->load(['classroom', 'grades.subject', 'attendance']);
+        $selectedAcademicYearId = $request->query('academic_year_id');
+        $academicYear = $selectedAcademicYearId
+            ? AcademicYear::find($selectedAcademicYearId)
+            : (AcademicYear::where('is_active', true)->first() ?? $student->academicYear);
+
+        $student->load([
+            'classroom',
+            'grades' => fn ($q) => $academicYear ? $q->where('academic_year_id', $academicYear->id) : $q,
+            'grades.subject',
+            'attendance' => fn ($q) => $academicYear ? $q->where('academic_year_id', $academicYear->id) : $q,
+        ]);
+
         $school = SchoolSetting::first() ?? new SchoolSetting([
             'nama_sekolah' => 'SMP HARAPAN BANGSA KARAWANG',
             'alamat' => 'Jl. R.E. Martadinata no. 8, RT.02/RW.09, Adiarsa Barat, Karawang',
@@ -35,18 +51,28 @@ class ReportCardController extends Controller
             'nip_kepala_sekolah' => '02980708020780',
             'nama_wali_kelas' => 'Farida Donna Gultom, S.Pd',
             'nip_wali_kelas' => '-',
-            'judul_laporan' => 'Laporan Hasil Belajar Tengah Semester 1 (Raport Bayangan)',
+            'judul_laporan' => 'Laporan Hasil Belajar Tengah Semester '.($academicYear?->semester ?? 1).' (Raport Bayangan)',
             'tanggal_raport' => 'Karawang, 02 Oktober 2026',
         ]);
-        $academicYear = $student->academicYear ?? AcademicYear::where('is_active', true)->first();
         $subjects = Subject::where('is_active', true)->orderBy('order_number')->orderBy('id')->get();
 
         return view('reports.preview', compact('student', 'school', 'academicYear', 'subjects'));
     }
 
-    public function printAll()
+    public function printAll(Request $request)
     {
-        $students = Student::with(['classroom', 'grades.subject', 'attendance'])->get();
+        $selectedAcademicYearId = $request->query('academic_year_id');
+        $academicYear = $selectedAcademicYearId
+            ? AcademicYear::find($selectedAcademicYearId)
+            : AcademicYear::where('is_active', true)->first();
+
+        $students = Student::with([
+            'classroom',
+            'grades' => fn ($q) => $academicYear ? $q->where('academic_year_id', $academicYear->id) : $q,
+            'grades.subject',
+            'attendance' => fn ($q) => $academicYear ? $q->where('academic_year_id', $academicYear->id) : $q,
+        ])->get();
+
         $school = SchoolSetting::first() ?? new SchoolSetting([
             'nama_sekolah' => 'SMP HARAPAN BANGSA KARAWANG',
             'alamat' => 'Jl. R.E. Martadinata no. 8, RT.02/RW.09, Adiarsa Barat, Karawang',
@@ -54,18 +80,28 @@ class ReportCardController extends Controller
             'nip_kepala_sekolah' => '02980708020780',
             'nama_wali_kelas' => 'Farida Donna Gultom, S.Pd',
             'nip_wali_kelas' => '-',
-            'judul_laporan' => 'Laporan Hasil Belajar Tengah Semester 1 (Raport Bayangan)',
+            'judul_laporan' => 'Laporan Hasil Belajar Tengah Semester '.($academicYear?->semester ?? 1).' (Raport Bayangan)',
             'tanggal_raport' => 'Karawang, 02 Oktober 2026',
         ]);
-        $academicYear = AcademicYear::where('is_active', true)->first();
         $subjects = Subject::where('is_active', true)->orderBy('order_number')->orderBy('id')->get();
 
         return view('reports.print-all', compact('students', 'school', 'academicYear', 'subjects'));
     }
 
-    public function excel(Student $student)
+    public function excel(Request $request, Student $student)
     {
-        $student->load(['classroom', 'grades.subject', 'attendance']);
+        $selectedAcademicYearId = $request->query('academic_year_id');
+        $academicYear = $selectedAcademicYearId
+            ? AcademicYear::find($selectedAcademicYearId)
+            : (AcademicYear::where('is_active', true)->first() ?? $student->academicYear);
+
+        $student->load([
+            'classroom',
+            'grades' => fn ($q) => $academicYear ? $q->where('academic_year_id', $academicYear->id) : $q,
+            'grades.subject',
+            'attendance' => fn ($q) => $academicYear ? $q->where('academic_year_id', $academicYear->id) : $q,
+        ]);
+
         $school = SchoolSetting::first() ?? new SchoolSetting([
             'nama_sekolah' => 'SMP HARAPAN BANGSA KARAWANG',
             'alamat' => 'Jl. R.E. Martadinata no. 8, RT.02/RW.09, Adiarsa Barat, Karawang',
@@ -73,10 +109,9 @@ class ReportCardController extends Controller
             'nip_kepala_sekolah' => '02980708020780',
             'nama_wali_kelas' => 'Farida Donna Gultom, S.Pd',
             'nip_wali_kelas' => '-',
-            'judul_laporan' => 'Laporan Hasil Belajar Tengah Semester 1 (Raport Bayangan)',
+            'judul_laporan' => 'Laporan Hasil Belajar Tengah Semester '.($academicYear?->semester ?? 1).' (Raport Bayangan)',
             'tanggal_raport' => 'Karawang, 02 Oktober 2026',
         ]);
-        $academicYear = $student->academicYear ?? AcademicYear::where('is_active', true)->first();
         $subjects = Subject::where('is_active', true)->orderBy('order_number')->orderBy('id')->get();
 
         $templatePath = base_path('storage/templates/Raport_Bayangan_Polos.xlsx');
@@ -244,12 +279,20 @@ class ReportCardController extends Controller
     /**
      * Export rekapitulasi leger nilai seluruh siswa dalam 1 file Excel.
      */
-    public function exportLeger()
+    public function exportLeger(Request $request)
     {
+        $selectedAcademicYearId = $request->query('academic_year_id');
+        $academicYear = $selectedAcademicYearId
+            ? AcademicYear::find($selectedAcademicYearId)
+            : AcademicYear::where('is_active', true)->first();
+
         $school = SchoolSetting::first();
-        $academicYear = AcademicYear::where('is_active', true)->first();
         $subjects = Subject::where('is_active', true)->orderBy('order_number')->orderBy('id')->get();
-        $students = Student::with(['classroom', 'grades', 'attendance'])->orderBy('name')->get();
+        $students = Student::with([
+            'classroom',
+            'grades' => fn ($q) => $academicYear ? $q->where('academic_year_id', $academicYear->id) : $q,
+            'attendance' => fn ($q) => $academicYear ? $q->where('academic_year_id', $academicYear->id) : $q,
+        ])->orderBy('name')->get();
 
         $spreadsheet = new Spreadsheet;
         $sheet = $spreadsheet->getActiveSheet();

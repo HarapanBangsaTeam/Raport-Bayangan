@@ -2,6 +2,17 @@
     <div x-data="{
         paperSize: 'a4',
         spacing: 'normal',
+        isPdfMode: {{ request('action') === 'pdf' ? 'true' : 'false' }},
+        init() {
+            if (this.isPdfMode) {
+                setTimeout(() => {
+                    window.print();
+                }, 600);
+            }
+        },
+        triggerPdf() {
+            window.print();
+        },
         get pageStyle() {
             if (this.paperSize === 'f4') {
                 return '@page { size: 215mm 330mm portrait; margin: 0 !important; } .print-container, .page-break { width: 215mm !important; height: 330mm !important; min-height: 330mm !important; max-height: 330mm !important; }';
@@ -16,9 +27,11 @@
             <div class="print:hidden flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
                 <div>
                     <h2 class="font-extrabold text-xl text-gray-900 leading-tight">
-                        {{ __('Cetak Massal Raport (Semua Siswa)') }}
+                        {{ __('Cetak & Backup PDF Raport (Semua Siswa)') }}
                     </h2>
-                    <p class="text-xs text-gray-500 mt-0.5">Pilih ukuran kertas dan kerapatan tampilan yang paling pas dengan printer Anda.</p>
+                    <p class="text-xs text-gray-500 mt-0.5">
+                        T.A. {{ $academicYear->name ?? '2026/2027' }} - Semester {{ $academicYear->semester ?? 1 }} ({{ $academicYear?->semester_name ?? 'Ganjil' }}). Total {{ $students->count() }} siswa.
+                    </p>
                 </div>
 
                 <div class="flex flex-wrap items-center gap-3">
@@ -68,12 +81,16 @@
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                             Edit Kop Surat
                         </a>
-                        <a href="{{ route('reports.index') }}" class="bg-slate-700 hover:bg-slate-800 text-white font-bold py-2 px-3.5 rounded-lg shadow-sm text-xs transition-all">
+                        <a href="{{ route('reports.index', ['academic_year_id' => $academicYear?->id]) }}" class="bg-slate-700 hover:bg-slate-800 text-white font-bold py-2 px-3.5 rounded-lg shadow-sm text-xs transition-all">
                             Kembali
                         </a>
+                        <button type="button" @click="triggerPdf()" class="bg-rose-700 hover:bg-rose-800 text-white font-bold py-2 px-3.5 rounded-lg shadow-md text-xs flex items-center gap-1.5 transition-all" title="Simpan sebagai 1 file PDF lengkap">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                            Simpan / Download PDF
+                        </button>
                         <button onclick="window.print()" class="bg-blue-700 hover:bg-blue-800 text-white font-bold py-2 px-4 rounded-lg shadow-md text-xs flex items-center gap-1.5 transition-all">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                            Cetak Semua Raport
+                            Cetak Printer
                         </button>
                     </div>
                 </div>
@@ -171,6 +188,30 @@
 
         <div class="py-6">
             <div class="max-w-4xl mx-auto sm:px-6 lg:px-8 space-y-12 print:space-y-0">
+                <!-- PETUNJUK SIMPAN PDF (HANYA DITAMPILKAN DI LAYAR BROWSER, BUKAN SAAT CETAK) -->
+                <div class="print:hidden bg-amber-50 border border-amber-300 rounded-xl p-4 shadow-sm text-amber-900">
+                    <div class="flex items-start gap-3">
+                        <div class="p-2 bg-amber-100 rounded-lg text-amber-700 shrink-0">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                        <div class="space-y-1 text-xs leading-relaxed">
+                            <h4 class="font-bold text-sm text-amber-950">Panduan Mengunduh Raport Format PDF (Backup Seluruh Siswa)</h4>
+                            <p>
+                                1. Klik tombol <strong>"Simpan / Download PDF"</strong> atau <strong>"Cetak Printer"</strong> di atas.
+                            </p>
+                            <p>
+                                2. Pada dialog cetak browser (Chrome / Edge), pilih <strong>Destination (Tujuan)</strong>: <strong>"Save as PDF" (Simpan sebagai PDF)</strong>.
+                            </p>
+                            <p>
+                                3. Centang opsi <strong>"Background graphics" (Grafik latar belakang)</strong> agar watermark resmi SMP Harapan Bangsa tercetak jernih.
+                            </p>
+                            <p>
+                                4. Klik <strong>Save</strong>. Satu berkas PDF utuh berisi raport seluruh siswa (1 halaman per siswa) akan langsung tersimpan.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
                 @foreach($students as $student)
                 <!-- Lembar Raport Kertas per Siswa -->
                 <div class="page-break relative bg-white overflow-hidden shadow-xl sm:rounded-lg p-6 sm:p-8 font-sans text-black leading-normal box-border w-full">
