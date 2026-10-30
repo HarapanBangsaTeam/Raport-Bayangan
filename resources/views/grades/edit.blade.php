@@ -6,12 +6,12 @@
                     {{ __('Input Nilai: ') }} {{ $student->name }}
                 </h2>
                 <p class="text-xs text-gray-500 mt-0.5">
-                    Kelas {{ $student->classroom->name ?? '-' }} | NISN: {{ $student->nisn ?? '-' }} | NIS: {{ $student->nis ?? '-' }}
+                    Kelas {{ $student->classroom->name ?? '-' }} | NISN: {{ $student->nisn ?? '-' }} | NIS: {{ $student->nis ?? '-' }} | <span class="font-bold text-gray-700">T.A. {{ $academicYear->name ?? '2026/2027' }} - Sem. {{ $academicYear->semester ?? 1 }} ({{ $academicYear?->semester_name ?? 'Ganjil' }})</span>
                 </p>
             </div>
             <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
                 @if($prevStudent)
-                    <a href="{{ route('grades.edit', $prevStudent->id) }}" class="inline-flex items-center gap-1 px-3 py-1.5 bg-white hover:bg-gray-100 text-gray-700 text-xs font-bold rounded-lg border border-gray-300 shadow-2xs transition-all" title="Pindah ke {{ $prevStudent->name }}">
+                    <a href="{{ route('grades.edit', array_filter(['student' => $prevStudent->id, 'academic_year_id' => $academicYear?->id])) }}" class="inline-flex items-center gap-1 px-3 py-1.5 bg-white hover:bg-gray-100 text-gray-700 text-xs font-bold rounded-lg border border-gray-300 shadow-2xs transition-all" title="Pindah ke {{ $prevStudent->name }}">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
                         <span>Siswa Sebelumnya</span>
                     </a>
@@ -23,7 +23,7 @@
                 @endif
 
                 @if($nextStudent)
-                    <a href="{{ route('grades.edit', $nextStudent->id) }}" class="inline-flex items-center gap-1 px-3 py-1.5 bg-white hover:bg-gray-100 text-gray-700 text-xs font-bold rounded-lg border border-gray-300 shadow-2xs transition-all" title="Pindah ke {{ $nextStudent->name }}">
+                    <a href="{{ route('grades.edit', array_filter(['student' => $nextStudent->id, 'academic_year_id' => $academicYear?->id])) }}" class="inline-flex items-center gap-1 px-3 py-1.5 bg-white hover:bg-gray-100 text-gray-700 text-xs font-bold rounded-lg border border-gray-300 shadow-2xs transition-all" title="Pindah ke {{ $nextStudent->name }}">
                         <span>Siswa Berikutnya</span>
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                     </a>
@@ -60,6 +60,7 @@
                 
                 <form action="{{ route('grades.store', $student->id) }}" method="POST">
                     @csrf
+                    <input type="hidden" name="academic_year_id" value="{{ $academicYear?->id }}">
                     
                     <div class="overflow-x-auto mb-6">
                         <table class="min-w-full divide-y divide-gray-200 border border-gray-300">
@@ -197,6 +198,7 @@
         <form method="POST" action="{{ route('grades.destroy-student', $student->id) }}" class="p-6">
             @csrf
             @method('DELETE')
+            <input type="hidden" name="academic_year_id" value="{{ $academicYear?->id }}">
 
             <div class="flex items-start gap-4">
                 <div class="flex-shrink-0 w-11 h-11 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center">

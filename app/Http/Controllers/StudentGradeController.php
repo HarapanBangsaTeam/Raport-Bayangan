@@ -13,9 +13,13 @@ use Illuminate\View\View;
 
 class StudentGradeController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-        $academicYear = AcademicYear::where('is_active', true)->first();
+        $academicYears = AcademicYear::orderBy('name', 'desc')->orderBy('semester', 'desc')->get();
+        $activeAcademicYear = AcademicYear::where('is_active', true)->first();
+        $selectedAcademicYearId = $request->query('academic_year_id', $activeAcademicYear?->id);
+        $academicYear = $academicYears->firstWhere('id', $selectedAcademicYearId) ?? $activeAcademicYear;
+
         $activeSubjectsCount = Subject::where('is_active', true)->count();
         $totalGradesCount = StudentGrade::when($academicYear, fn ($query) => $query->where('academic_year_id', $academicYear->id))->count();
 
@@ -25,16 +29,20 @@ class StudentGradeController extends Controller
             }
         }])->paginate(20);
 
-        return view('grades.index', compact('students', 'academicYear', 'totalGradesCount', 'activeSubjectsCount'));
+        return view('grades.index', compact('students', 'academicYear', 'academicYears', 'totalGradesCount', 'activeSubjectsCount'));
     }
 
     public function bySubject(Request $request): View
     {
+        $academicYears = AcademicYear::orderBy('name', 'desc')->orderBy('semester', 'desc')->get();
+        $activeAcademicYear = AcademicYear::where('is_active', true)->first();
+        $selectedAcademicYearId = $request->query('academic_year_id', $activeAcademicYear?->id);
+        $academicYear = $academicYears->firstWhere('id', $selectedAcademicYearId) ?? $activeAcademicYear;
+
         $subjects = Subject::where('is_active', true)->orderBy('order_number')->orderBy('id')->get();
         $selectedSubjectId = $request->query('subject_id', $subjects->first()?->id);
         $selectedSubject = $subjects->firstWhere('id', $selectedSubjectId) ?? $subjects->first();
 
-        $academicYear = AcademicYear::where('is_active', true)->first();
         $students = Student::with(['classroom'])->orderBy('name')->get();
 
         $grades = collect();
@@ -45,7 +53,7 @@ class StudentGradeController extends Controller
                 ->keyBy('student_id');
         }
 
-        return view('grades.by_subject', compact('subjects', 'selectedSubject', 'students', 'grades', 'academicYear'));
+        return view('grades.by_subject', compact('subjects', 'selectedSubject', 'students', 'grades', 'academicYear', 'academicYears'));
     }
 
     public function storeBySubject(Request $request): RedirectResponse
@@ -59,7 +67,10 @@ class StudentGradeController extends Controller
         ]);
 
         $subjectId = (int) $request->subject_id;
-        $academicYear = AcademicYear::where('is_active', true)->first();
+        $academicYearId = $request->input('academic_year_id') ?? $request->query('academic_year_id');
+        $academicYear = $academicYearId
+            ? AcademicYear::find($academicYearId)
+            : AcademicYear::where('is_active', true)->first();
 
         if ($request->has('grades')) {
             foreach ($request->grades as $studentId => $gradeData) {
@@ -81,7 +92,12 @@ class StudentGradeController extends Controller
 
         $subject = Subject::find($subjectId);
 
-        return redirect()->route('grades.by-subject', ['subject_id' => $subjectId])
+        $redirectParams = ['subject_id' => $subjectId];
+        if ($request->query('academic_year_id')) {
+            $redirectParams['academic_year_id'] = $request->query('academic_year_id');
+        }
+
+        return redirect()->route('grades.by-subject', $redirectParams)
             ->with('success', 'Nilai seluruh siswa untuk mata pelajaran '.($subject->name ?? '').' berhasil disimpan.');
     }
 
@@ -164,22 +180,24 @@ class StudentGradeController extends Controller
             );
         }
 
+        $academicYearQuery = $request->query('academic_year_id') ? ['academic_year_id' => $request->query('academic_year_id')] : [];
+
         if ($request->action == 'preview') {
-            return redirect()->route('reports.preview', $student->id);
+            return redirect()->route('reports.preview', ['student' => $student->id] + $academicYearQuery);
         }
 
         if ($request->action === 'save_and_next') {
             $nextStudent = Student::where('id', '>', $student->id)->orderBy('id', 'asc')->first();
             if ($nextStudent) {
-                return redirect()->route('grades.edit', $nextStudent->id)
+                return redirect()->route('grades.edit', ['student' => $nextStudent->id] + $academicYearQuery)
                     ->with('success', 'Nilai '.$student->name.' tersimpan. Melanjutkan ke siswa '.$nextStudent->name.'.');
             }
 
-            return redirect()->route('grades.index')
+            return redirect()->route('grades.index', $academicYearQuery)
                 ->with('success', 'Nilai '.$student->name.' tersimpan. Anda telah mencapai siswa terakhir.');
         }
 
-        return redirect()->route('grades.edit', $student->id)->with('success', 'Data nilai berhasil disimpan.');
+        return redirect()->route('grades.edit', ['student' => $student->id] + $academicYearQuery)->with('success', 'Data nilai berhasil disimpan.');
     }
 
     /**
@@ -187,7 +205,10 @@ class StudentGradeController extends Controller
      */
     public function destroyAll(Request $request): RedirectResponse
     {
-        $academicYear = AcademicYear::where('is_active', true)->first();
+        $academicYearId = $request->input('academic_year_id') ?? $request->query('academic_year_id');
+        $academicYear = $academicYearId
+            ? AcademicYear::find($academicYearId)
+            : AcademicYear::where('is_active', true)->first();
 
         // Hapus seluruh nilai pada tahun ajaran aktif (atau seluruh nilai jika tidak ada tahun ajaran aktif)
         $gradeQuery = StudentGrade::query();

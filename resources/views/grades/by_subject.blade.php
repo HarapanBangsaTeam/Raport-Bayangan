@@ -47,12 +47,12 @@
 
             <!-- Tab Navigasi Mode Input Nilai -->
             <div class="flex items-center gap-2 border-b border-gray-200 pb-2">
-                <a href="{{ route('grades.index') }}" 
+                <a href="{{ route('grades.index', array_filter(['academic_year_id' => $academicYear?->id])) }}" 
                    class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all bg-white text-gray-700 hover:bg-gray-100 border border-gray-200">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                     <span>Mode per Siswa</span>
                 </a>
-                <a href="{{ route('grades.by-subject') }}" 
+                <a href="{{ route('grades.by-subject', array_filter(['academic_year_id' => $academicYear?->id])) }}" 
                    class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all bg-blue-700 text-white shadow-xs">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
                     <span>Mode per Mata Pelajaran (Cepat)</span>
@@ -66,7 +66,7 @@
                         Pilih Mata Pelajaran:
                     </label>
                     <select id="subject_picker" 
-                            onchange="window.location.href = '{{ route('grades.by-subject') }}?subject_id=' + this.value" 
+                            onchange="window.location.href = '{{ route('grades.by-subject') }}?subject_id=' + this.value + '{{ $academicYear ? '&academic_year_id=' . $academicYear->id : '' }}'" 
                             class="rounded-lg border-gray-300 text-sm font-bold text-gray-800 shadow-xs focus:ring-blue-500 focus:border-blue-500 py-2 pl-3 pr-8">
                         @foreach($subjects as $subj)
                             <option value="{{ $subj->id }}" {{ ($selectedSubject?->id === $subj->id) ? 'selected' : '' }}>
@@ -85,6 +85,7 @@
             <form action="{{ route('grades.store-by-subject') }}" method="POST">
                 @csrf
                 <input type="hidden" name="subject_id" value="{{ $selectedSubject->id }}">
+                <input type="hidden" name="academic_year_id" value="{{ $academicYear?->id }}">
 
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-xl border border-gray-200">
                     <div class="px-6 py-4 bg-slate-50 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">

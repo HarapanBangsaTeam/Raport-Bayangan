@@ -72,7 +72,7 @@
                 <h3 class="text-lg font-bold text-gray-900 mb-2">Aksi Cepat Menu Utama</h3>
                 <p class="text-sm text-gray-600 mb-6">Pilih menu di bawah ini untuk mengelola nilai atau langsung mencetak raport bayangan siswa.</p>
 
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <a href="{{ route('grades.index') }}" class="flex items-center gap-3 p-4 bg-blue-700 hover:bg-blue-800 text-white rounded-xl shadow-md transition-all font-semibold">
                         <div class="p-2.5 bg-white/10 rounded-lg">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
@@ -99,7 +99,17 @@
                         </div>
                         <div>
                             <div class="text-base font-bold">Cetak Semua Raport</div>
-                            <div class="text-xs text-emerald-100 font-normal">Cetak 1 kelas sekaligus (A4 Page Break)</div>
+                            <div class="text-xs text-emerald-100 font-normal">Cetak 1 kelas sekaligus (A4)</div>
+                        </div>
+                    </a>
+
+                    <a href="{{ route('settings.school') }}" class="flex items-center gap-3 p-4 bg-slate-800 hover:bg-slate-900 text-white rounded-xl shadow-md transition-all font-semibold">
+                        <div class="p-2.5 bg-white/10 rounded-lg">
+                            <svg class="w-6 h-6 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        </div>
+                        <div>
+                            <div class="text-base font-bold">Backup Database</div>
+                            <div class="text-xs text-slate-300 font-normal">Unduh & pulihkan data SQLite</div>
                         </div>
                     </a>
                 </div>

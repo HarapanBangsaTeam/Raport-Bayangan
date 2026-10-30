@@ -125,6 +125,75 @@
                 </div>
             </form>
 
+            <!-- SECTION PENCADANGAN & PEMULIHAN DATABASE (BACKUP & RESTORE) -->
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-2xl border border-gray-200 p-6 sm:p-8 space-y-6">
+                <div class="border-b border-gray-200 pb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h3 class="text-base font-extrabold text-gray-900 flex items-center gap-2">
+                            <span class="p-1.5 bg-emerald-100 text-emerald-800 rounded-lg">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path></svg>
+                            </span>
+                            <span>Cadangan & Pemulihan Database (Backup & Restore)</span>
+                        </h3>
+                        <p class="text-xs text-gray-500 mt-1">
+                            Seluruh data siswa, riwayat nilai semester 1 dan 2, absensi, serta kop surat tersimpan di berkas SQLite. Unduh berkas cadangan secara berkala untuk disimpan di komputer atau flashdisk.
+                        </p>
+                    </div>
+
+                    <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-100 text-slate-800 rounded-lg text-xs font-semibold shrink-0">
+                        <span>Ukuran: <strong>{{ $dbSizeFormatted }}</strong></span>
+                        <span class="text-gray-400">|</span>
+                        <span>Update: <strong>{{ $dbLastModified }}</strong></span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- KARTU 1: DOWNLOAD BACKUP -->
+                    <div class="p-5 bg-slate-50 border border-slate-200 rounded-xl flex flex-col justify-between space-y-4">
+                        <div class="space-y-1.5">
+                            <h4 class="font-bold text-sm text-gray-900 flex items-center gap-2">
+                                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                <span>Unduh Berkas Cadangan</span>
+                            </h4>
+                            <p class="text-xs text-gray-600 leading-relaxed">
+                                Simpan salinan database lengkap ke laptop Anda saat ini. Sangat disarankan sebelum mengosongkan nilai atau setelah pembagian raport tengah semester.
+                            </p>
+                        </div>
+
+                        <a href="{{ route('settings.backup.download') }}"
+                            class="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold shadow-md transition-all">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            <span>Download Backup Database (.sqlite)</span>
+                        </a>
+                    </div>
+
+                    <!-- KARTU 2: RESTORE DARI FILE BACKUP -->
+                    <div class="p-5 bg-amber-50/50 border border-amber-200 rounded-xl flex flex-col justify-between space-y-4">
+                        <div class="space-y-1.5">
+                            <h4 class="font-bold text-sm text-amber-950 flex items-center gap-2">
+                                <svg class="w-4 h-4 text-amber-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                                <span>Pulihkan dari File Cadangan (Restore)</span>
+                            </h4>
+                            <p class="text-xs text-amber-900/80 leading-relaxed">
+                                Unggah berkas cadangan (.sqlite) yang pernah Anda unduh untuk mengembalikan seluruh data ke kondisi pada saat cadangan dibuat. Sistem otomatis membuat checkpoint darurat sebelum data ditimpa.
+                            </p>
+                        </div>
+
+                        <form action="{{ route('settings.backup.restore') }}" method="POST" enctype="multipart/form-data"
+                            onsubmit="return confirm('PENTING: Apakah Anda yakin ingin memulihkan database dari file cadangan ini? Data saat ini akan digantikan oleh isi file cadangan.');"
+                            class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                            @csrf
+                            <input type="file" name="backup_file" required accept=".sqlite,.sqlite3,.db,.bak"
+                                class="block w-full text-xs text-gray-700 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-amber-100 file:text-amber-800 hover:file:bg-amber-200">
+                            <button type="submit"
+                                class="px-4 py-2 bg-amber-700 hover:bg-amber-800 text-white rounded-xl text-xs font-bold shadow-md transition-all whitespace-nowrap shrink-0">
+                                Pulihkan
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 </x-app-layout>

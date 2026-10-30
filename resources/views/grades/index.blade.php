@@ -9,7 +9,20 @@
                     Kelola dan perbarui nilai harian (PR, UH) serta sumatif (Tertulis, Praktek) per siswa.
                 </p>
             </div>
-            <div class="flex items-center gap-3">
+            <div class="flex flex-wrap items-center gap-2.5">
+                <!-- DROPDOWN FILTER SEMESTER -->
+                <form method="GET" action="{{ route('grades.index') }}" class="flex items-center gap-1.5 bg-white p-1 rounded-lg border border-gray-300 shadow-xs">
+                    <span class="text-xs font-bold text-gray-600 pl-2">Periode:</span>
+                    <select name="academic_year_id" onchange="this.form.submit()"
+                        class="text-xs font-bold text-gray-800 border-none bg-transparent py-1 pr-8 pl-1 focus:ring-0 cursor-pointer">
+                        @foreach($academicYears as $year)
+                            <option value="{{ $year->id }}" {{ ($academicYear?->id == $year->id) ? 'selected' : '' }}>
+                                T.A. {{ $year->name }} - Sem. {{ $year->semester }} ({{ $year->semester_name }}){{ $year->is_active ? ' [AKTIF]' : '' }}
+                            </option>
+                        @endforeach
+                    </select>
+                </form>
+
                 <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-100 text-blue-900 border border-blue-300">
                     Total Siswa: {{ $students->total() }}
                 </span>
@@ -55,12 +68,12 @@
             @endif
             <!-- Tab Navigasi Mode Input Nilai -->
             <div class="flex items-center gap-2 border-b border-gray-200 pb-2">
-                <a href="{{ route('grades.index') }}" 
+                <a href="{{ route('grades.index', array_filter(['academic_year_id' => $academicYear?->id])) }}" 
                    class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all bg-blue-700 text-white shadow-xs">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                     <span>Mode per Siswa</span>
                 </a>
-                <a href="{{ route('grades.by-subject') }}" 
+                <a href="{{ route('grades.by-subject', array_filter(['academic_year_id' => $academicYear?->id])) }}" 
                    class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all bg-white text-gray-700 hover:bg-gray-100 border border-gray-200">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
                     <span>Mode per Mata Pelajaran (Cepat)</span>
@@ -123,11 +136,11 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-center">
                                     <div class="inline-flex items-center gap-2">
-                                        <a href="{{ route('grades.edit', $student->id) }}" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-700 hover:bg-blue-800 text-white rounded-lg text-xs font-bold shadow-sm transition-all">
+                                        <a href="{{ route('grades.edit', array_filter(['student' => $student->id, 'academic_year_id' => $academicYear?->id])) }}" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-700 hover:bg-blue-800 text-white rounded-lg text-xs font-bold shadow-sm transition-all">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                                             Input / Edit Nilai
                                         </a>
-                                        <a href="{{ route('reports.preview', $student->id) }}" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-700 hover:bg-slate-800 text-white rounded-lg text-xs font-bold shadow-sm transition-all">
+                                        <a href="{{ route('reports.preview', array_filter(['student' => $student->id, 'academic_year_id' => $academicYear?->id])) }}" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-700 hover:bg-slate-800 text-white rounded-lg text-xs font-bold shadow-sm transition-all">
                                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
                                             Lihat Raport
                                         </a>
@@ -136,7 +149,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="5" class="px-6 py-8 text-center text-gray-500 font-medium">
+                                <td colspan="6" class="px-6 py-8 text-center text-gray-500 font-medium">
                                     Belum ada data siswa.
                                 </td>
                             </tr>
@@ -147,7 +160,7 @@
 
                 @if($students->hasPages())
                 <div class="px-6 py-4 border-t border-gray-200 bg-gray-50">
-                    {{ $students->links() }}
+                    {{ $students->appends(['academic_year_id' => $academicYear?->id])->links() }}
                 </div>
                 @endif
             </div>
@@ -159,6 +172,7 @@
         <form method="POST" action="{{ route('grades.destroy-all') }}" class="p-6" x-data="{ confirmation: '', resetAttendance: true }">
             @csrf
             @method('DELETE')
+            <input type="hidden" name="academic_year_id" value="{{ $academicYear?->id }}">
 
             <div class="flex items-start gap-4">
                 <div class="flex-shrink-0 w-11 h-11 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center">

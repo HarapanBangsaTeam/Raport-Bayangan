@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AcademicYearController;
+use App\Http\Controllers\BackupController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReportCardController;
@@ -41,9 +42,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/reports/{student}/preview', [ReportCardController::class, 'preview'])->name('reports.preview');
     Route::get('/reports/{student}/excel', [ReportCardController::class, 'excel'])->name('reports.excel');
 
-    // Settings
+    // Settings & Backup
     Route::get('/settings/school', [SchoolSettingController::class, 'edit'])->name('settings.school');
     Route::put('/settings/school', [SchoolSettingController::class, 'update'])->name('settings.school.update');
+    Route::get('/settings/backup/download', [BackupController::class, 'download'])->name('settings.backup.download');
+    Route::post('/settings/backup/restore', [BackupController::class, 'restore'])->name('settings.backup.restore');
     Route::post('/academic-years/{academicYear}/set-active', [AcademicYearController::class, 'setActive'])->name('academic-years.set-active');
     Route::resource('academic-years', AcademicYearController::class);
 

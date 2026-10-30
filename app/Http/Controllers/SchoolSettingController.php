@@ -20,7 +20,12 @@ class SchoolSettingController extends Controller
             'tanggal_raport' => 'Karawang, 02 Oktober 2026',
         ]);
 
-        return view('settings.school', compact('school'));
+        $dbPath = config('database.connections.sqlite.database');
+        $dbExists = is_string($dbPath) && file_exists($dbPath);
+        $dbSizeFormatted = $dbExists ? number_format(filesize($dbPath) / 1024, 1).' KB' : '0 KB';
+        $dbLastModified = $dbExists ? date('d M Y, H:i', filemtime($dbPath)) : '-';
+
+        return view('settings.school', compact('school', 'dbExists', 'dbSizeFormatted', 'dbLastModified'));
     }
 
     public function update(Request $request)

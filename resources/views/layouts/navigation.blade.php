@@ -35,7 +35,7 @@
                         Tahun & Semester
                     </x-nav-link>
                     <x-nav-link :href="route('settings.school')" :active="request()->routeIs('settings.*')">
-                        Kop Surat
+                        Pengaturan & Backup
                     </x-nav-link>
                 </div>
             </div>
@@ -108,7 +108,7 @@
                 {{ __('Tahun & Semester') }}
             </x-responsive-nav-link>
             <x-responsive-nav-link :href="route('settings.school')" :active="request()->routeIs('settings.*')">
-                {{ __('Kop Surat') }}
+                {{ __('Pengaturan & Backup') }}
             </x-responsive-nav-link>
         </div>
 
